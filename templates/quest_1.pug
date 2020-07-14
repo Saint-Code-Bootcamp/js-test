@@ -1,0 +1,32 @@
+doctype html
+html
+    header
+        title JS. Проверь свои знания
+    body
+        h1 Вопрос №2
+        h3 Чему равно свойство input.checked в результате этого кода?
+        code
+            pre. 
+                var input = document.createElement("input")
+                input.type = "checkbox"
+                input.setAttribute("checked","checked")
+                document.body.appendChild(input)
+        form(method='post')
+            div
+                input(type="radio" id="answ0" name="answ" value="0") 
+                label(for="answ0") true
+            div
+                input(type="radio" id="answ1" name="answ" value="1") 
+                label(for="answ1") checked
+            div
+                input(type="radio" id="answ2" name="answ" value="2") 
+                label(for="answ2") false
+            div
+                input(type="radio" id="answ3" name="answ" value="3") 
+                label(for="answ3") в разных браузерах по разному
+            div
+                input(type="radio" id="answ4" name="answ" value="4") 
+                label(for="answ4") в коде ошибка
+
+            input(type='submit')
+        

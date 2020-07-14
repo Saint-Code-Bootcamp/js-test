@@ -1,0 +1,13 @@
+{
+    "name": "jstest",
+    "version": "1.0.0",
+    "author": "BugFixer <no@email.com>",
+    "license": "ISC",
+    "description": "Simple JS test",
+    "main": "app.js",
+    "dependencies": {
+        "express": "^4.17.1",
+        "pug": "^3.0.0",
+        "nunjucks": "^3.2.1"
+    }
+}
