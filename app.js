@@ -41,6 +41,10 @@ function Session(sess_id){
         }
         return null;
     }
+
+    this.det_data = function(){
+        //получить данные сессии в виде объекта
+    }
 }
 
 
@@ -85,6 +89,13 @@ app.post('/', urlencodedParser, (req, res) => {
 });
 
 app.get('/quest:num', (req, res) => {
+    const sess = new Session();
+    const hash_id = sess.get_id(req.url); //получим ид сессии
+    if (hash_id === null){ //hack detect - попытка войти без сессии
+        res.redirect('/');
+        return;
+    }
+
     let num = parseInt(req.params.num); //приведем к целому
     num = num <= 9 && num >=0 ? num : 1; //ограничим от 0 до 9
     const compiledFunction = pug.compileFile(`${settings.dirs.TEMPLATES}quest_${num}.pug`);
@@ -92,7 +103,7 @@ app.get('/quest:num', (req, res) => {
     res.send(resp);
 }); 
 
-app.post('/quest:num', (req, res) => {
+app.post('/quest:num', urlencodedParser, (req, res) => {
     let num = parseInt(req.params.num); //номер вопроса
     const sess = new Session();
     const hash_id = sess.get_id(req.url); //получим ид сессии
@@ -113,7 +124,7 @@ app.post('/quest:num', (req, res) => {
             num ++; //увеличим счётчик вопросов
             data.current = num;
             fs.writeFileSync(fn_path, JSON.stringify(data), {flag: 'w'}); //записали новые данные неа диск
-            if (num >= length(data.answers)){
+            if (num >= data.answers.length){
                 //ответили на все вопросы
                 // переходим на страницу с результатами
                 res.redirect(sess.gen('/results'));
