@@ -6,6 +6,7 @@ const crypto = require('crypto');
 
 const settings = require('./settings');
 const Session = require('./sessions');
+const admin = require('./admin');
 
 const app = express(); 
 const port = 3000; //определили порт для соединения с приложением
@@ -52,6 +53,7 @@ app.post('/', urlencodedParser, (req, res) => {    //получим значен
             complete: 0, //признак завершенности
             summary: 0 //количество верных ответов
         };    
+    //сохраним данные сессии
     sess.write_data(data);
     res.redirect(sess.gen_url('/quest0'));
 });
@@ -140,6 +142,8 @@ app.get('/reset', (req, res) => { //(промежуточная страница
     sess.delete();
     res.redirect('/');
 });
+
+app.get('/admin', admin.admin); 
 
 
 // запускаем сервер на прослушивание порта
