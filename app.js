@@ -24,8 +24,7 @@ app.get('/', (req, res) => { // запрос email(начальная стран
     res.send(resp);
 }); 
 
-app.post('/', urlencodedParser, (req, res) => {
-    //получим значение email  из тела запроса
+app.post('/', urlencodedParser, (req, res) => {    //получим значение email  из тела запроса
     const email = req.body.email;
     //выведем в лог
     console.log(email);
@@ -46,6 +45,7 @@ app.post('/', urlencodedParser, (req, res) => {
         }   
         return;
     }
+    // сессия не создана - это первый вход. Проинициализируем данные сессии
     data = {email: email, //емайл пользователя
             answers: [false, false, false, false, false, false, false, false, false, false], //правильность ответов
             current: 0, //текущий вопрос
@@ -56,7 +56,7 @@ app.post('/', urlencodedParser, (req, res) => {
     res.redirect(sess.gen_url('/quest0'));
 });
 
-app.get('/quest:num', (req, res) => {
+app.get('/quest:num', (req, res) => { //отобразим вопрос и варианты ответа
     const sess = new Session();
     sess.get_id(req.url); //получим ид сессии
     if (!sess.is_session()){ //hack detect - попытка войти без сессии
@@ -70,7 +70,7 @@ app.get('/quest:num', (req, res) => {
     res.send(resp);
 }); 
 
-app.post('/quest:num', urlencodedParser, (req, res) => {
+app.post('/quest:num', urlencodedParser, (req, res) => { //обработаем ответ пользователя
     let num = parseInt(req.params.num); //номер вопроса
     const sess = new Session();
     sess.get_id(req.url); //получим ид сессии
@@ -112,7 +112,7 @@ app.post('/quest:num', urlencodedParser, (req, res) => {
     res.redirect('/error');
 }); 
 
-app.get('/results', (req, res) => {
+app.get('/results', (req, res) => {// выведем результаты теста
     const sess = new Session();
     sess.get_id(req.url); 
     if (!sess.is_session()){ //hack detect 
@@ -130,8 +130,7 @@ app.get('/results', (req, res) => {
     res.send(resp);
 });
 
-app.get('/reset', (req, res) => {
-    //сбросить все данные и пройти тест заново
+app.get('/reset', (req, res) => { //(промежуточная страница) сбросить все данные и пройти тест заново
     const sess = new Session();
     sess.get_id(req.url); 
     if (!sess.is_session()){ //hack detect 
