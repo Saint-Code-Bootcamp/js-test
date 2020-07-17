@@ -1,0 +1,28 @@
+doctype html
+html
+    header
+        title JS. Проверь свои знания
+    body
+        h1 Вопрос №5
+        h3 5. Чему равно a+b+c ?
+        code
+            pre.
+                var a = 1;
+                var b = { toString:function() {return '1'} };
+                var c = Object(1);
+        form(method='post')
+            div
+                input(type="radio" id="answ0" name="answ" value="0") 
+                label(for="answ0") 11[object Object]
+            div
+                input(type="radio" id="answ1" name="answ" value="1") 
+                label(for="answ1") 2[object Object]
+            div
+                input(type="radio" id="answ2" name="answ" value="2") 
+                label(for="answ2") 111
+            div
+                input(type="radio" id="answ3" name="answ" value="3") 
+                label(for="answ3") 3
+
+            input(type='submit')
+        

@@ -1,0 +1,27 @@
+doctype html
+html
+    header
+        title JS. Проверь свои знания
+    body
+        h1 Вопрос №4
+        h3 4. Что будет выведено alert'ом ?
+        code
+            pre. 
+                &lt;input type="text" id="info"/&gt;
+                &lt;script&gt;
+                    info = 5;
+                    alert(info);
+                &lt;/script&gt;
+        form(method='post')
+            div
+                input(type="radio" id="answ0" name="answ" value="0") 
+                label(for="answ0") Выведет строковое представление для input
+            div
+                input(type="radio" id="answ1" name="answ" value="1") 
+                label(for="answ1") Выведет 5
+            div
+                input(type="radio" id="answ2" name="answ" value="2") 
+                label(for="answ2") Этот код не кросс-браузерный, и может вообще не пахать.
+
+            input(type='submit')
+        

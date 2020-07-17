@@ -1,0 +1,32 @@
+doctype html
+html
+    header
+        title JS. Проверь свои знания
+    body
+        h1 Вопрос №7
+        h3 Какова длина a.length массива a ?
+        code
+            pre.
+                var a = []
+                a[1] = 5
+                a[3] = 53
+                delete a[3]
+        form(method='post')
+            div
+                input(type="radio" id="answ0" name="answ" value="0") 
+                label(for="answ0") 1
+            div
+                input(type="radio" id="answ1" name="answ" value="1") 
+                label(for="answ1") 2
+            div
+                input(type="radio" id="answ2" name="answ" value="2") 
+                label(for="answ2") 3
+            div
+                input(type="radio" id="answ3" name="answ" value="3") 
+                label(for="answ3") 4
+            div
+                input(type="radio" id="answ4" name="answ" value="4") 
+                label(for="answ4") больше
+
+            input(type='submit')
+        

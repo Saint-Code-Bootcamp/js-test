@@ -5,6 +5,7 @@ const fs = require('fs');
 const crypto = require('crypto');
 
 const settings = require('./settings');
+const Session = require('./sessions');
 
 const app = express(); 
 const port = 3000; //определили порт для соединения с приложением
@@ -15,37 +16,6 @@ const urlencodedParser = bodyParser.urlencoded();
 
 //правельные ответы
 const true_answers = [2, 0, 0, 1, 2, 1, 3, 0, 3, 1];
-
-function Session(sess_id){
-    //опишем объект сессии
-    this.sess_id = sess_id;
-    
-    this.gen = function(url){
-        //сгенерировать url c ключём сессии
-        if (url.indexOf('?') >=0 ){
-            // в url уже есть ?
-            url += '&sess_id=';
-        } else {
-            url += '?sess_id=';
-        }
-        url += this.sess_id;
-        return url;
-    }
-
-    this.get_id = function(url){
-        //извлеч sess_id  из url
-        let match = url.match(/sess_id=([\da-f]+)/);
-        if (match != null){
-            this.sess_id = match[1];
-            return this.sess_id;
-        }
-        return null;
-    }
-
-    this.det_data = function(){
-        //получить данные сессии в виде объекта
-    }
-}
 
 
 app.get('/', (req, res) => { // запрос email(начальная страница)    
@@ -59,22 +29,20 @@ app.post('/', urlencodedParser, (req, res) => {
     const email = req.body.email;
     //выведем в лог
     console.log(email);
-    //сгенерируем имя файла
+    //сгенерируем уникальный id сессии  по алгоритму md5
     const hash_id = crypto.createHash('md5').update(email).digest('hex');
-    const fn = hash_id + '.dat';
-    const fn_path = settings.dirs.BASE + 'data/' + fn; //полный путь
     //создадим объект управления сессиями
     const sess = new Session(hash_id);
-    if (fs.existsSync(fn_path)){
-        //если файл создан, значит это не первый заход на сайт
-        //прочитаем данные из файла
-        data = JSON.parse( fs.readFileSync(fn_path) );
+    if (sess.is_session()){
+        //значит это не первый заход на сайт
+        //прочитаем данные сессии
+        data = sess.read_data();
         if (!data.complete){
             //перенаправим на текущию страницу
-            res.redirect(sess.gen('/quest' + data.current));
+            res.redirect(sess.gen_url('/quest' + data.current));
         } else {
             //или на страницу с результатами
-            res.redirect(sess.gen('/results'));
+            res.redirect(sess.gen_url('/results'));
         }   
         return;
     }
@@ -84,20 +52,19 @@ app.post('/', urlencodedParser, (req, res) => {
             complete: 0, //признак завершенности
             summary: 0 //количество верных ответов
         };    
-    fs.writeFileSync(fn_path, JSON.stringify(data), {flag: 'w'});
-    res.redirect(sess.gen('/quest0'));
+    sess.write_data(data);
+    res.redirect(sess.gen_url('/quest0'));
 });
 
 app.get('/quest:num', (req, res) => {
     const sess = new Session();
-    const hash_id = sess.get_id(req.url); //получим ид сессии
-    if (hash_id === null){ //hack detect - попытка войти без сессии
+    sess.get_id(req.url); //получим ид сессии
+    if (!sess.is_session()){ //hack detect - попытка войти без сессии
         res.redirect('/');
         return;
     }
-
     let num = parseInt(req.params.num); //приведем к целому
-    num = num <= 9 && num >=0 ? num : 1; //ограничим от 0 до 9
+    num = num <= 9 && num >=0 ? num : 0; //ограничим от 0 до 9
     const compiledFunction = pug.compileFile(`${settings.dirs.TEMPLATES}quest_${num}.pug`);
     const resp = compiledFunction();
     res.send(resp);
@@ -106,31 +73,31 @@ app.get('/quest:num', (req, res) => {
 app.post('/quest:num', urlencodedParser, (req, res) => {
     let num = parseInt(req.params.num); //номер вопроса
     const sess = new Session();
-    const hash_id = sess.get_id(req.url); //получим ид сессии
+    sess.get_id(req.url); //получим ид сессии
     //сохраним данные ответа
-    const fn = hash_id + '.dat';
-    const fn_path = settings.dirs.BASE + 'data/' + fn; //полный путь
-    if (fs.existsSync(fn_path)){
-        data = JSON.parse( fs.readFileSync(fn_path) ); //получили данные
+    if (sess.is_session()){
+        data = sess.read_data(); //получили данные
         if (!data.complete && 
             data.current != num){ 
             //проверим что пользователь действительно послал ответ на текущий вопрос
             //в противном случае отправим его обратно
-            res.redirect(sess.gen('/quest' + data.current));
+            res.redirect(sess.gen_url('/quest' + data.current));
             return;
         } else {
             data.answers[num] = req.body.answ == true_answers[num]; //сохраним правильность ответа
             data.summary += data.answers[num] ? 1 : 0; //изменим счётчик правельных ответов
             num ++; //увеличим счётчик вопросов
             data.current = num;
-            fs.writeFileSync(fn_path, JSON.stringify(data), {flag: 'w'}); //записали новые данные неа диск
+            sess.write_data(data); //записали новые данные
             if (num >= data.answers.length){
                 //ответили на все вопросы
                 // переходим на страницу с результатами
-                res.redirect(sess.gen('/results'));
+                data.complete = true;
+                sess.write_data(data); //записали новые данные
+                res.redirect(sess.gen_url('/results'));
                 return
             }       
-            res.redirect(sess.gen('/quest'+num));    
+            res.redirect(sess.gen_url('/quest'+num));    
             return;
         }
     } else {
@@ -144,6 +111,36 @@ app.post('/quest:num', urlencodedParser, (req, res) => {
     //именно поэтому делаем редирект на страницу /error
     res.redirect('/error');
 }); 
+
+app.get('/results', (req, res) => {
+    const sess = new Session();
+    sess.get_id(req.url); 
+    if (!sess.is_session()){ //hack detect 
+        res.redirect('/');
+        return;
+    }
+    const data = sess.read_data();
+    const compiledFunction = pug.compileFile(`${settings.dirs.TEMPLATES}result.pug`);
+    const resp = compiledFunction({
+        email: data.email,
+        cnt: data.summary,
+        total: data.answers.length,
+        reseturl: sess.gen_url('/reset')
+        });
+    res.send(resp);
+});
+
+app.get('/reset', (req, res) => {
+    //сбросить все данные и пройти тест заново
+    const sess = new Session();
+    sess.get_id(req.url); 
+    if (!sess.is_session()){ //hack detect 
+        res.redirect('/');
+        return;
+    }
+    sess.delete();
+    res.redirect('/');
+});
 
 
 // запускаем сервер на прослушивание порта
