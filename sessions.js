@@ -1,5 +1,6 @@
 const fs = require('fs');
 
+
 function Session(sess_id){
     //опишем объект сессии
     this._BASE_DIR = __dirname + '/' //дириктория в которой находится скрипт

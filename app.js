@@ -1,11 +1,10 @@
 const express = require('express'); 
 const pug = require('pug');
 const bodyParser = require("body-parser");
-const fs = require('fs');
 const crypto = require('crypto');
 
 const settings = require('./settings');
-const Session = require('./sessions');
+const Session = require('./sessions_db');
 const admin = require('./admin');
 
 const app = express(); 
@@ -19,7 +18,7 @@ const urlencodedParser = bodyParser.urlencoded();
 const true_answers = [2, 0, 0, 1, 2, 1, 3, 0, 3, 1];
 
 
-app.get('/', (req, res) => { // запрос email(начальная страница)    
+app.get('/', (req, res) => { // запрос email(начальная страница)
     const compiledFunction = pug.compileFile(settings.dirs.TEMPLATES + 'index.pug');
     const resp = compiledFunction();
     res.send(resp);
@@ -94,7 +93,7 @@ app.post('/quest:num', urlencodedParser, (req, res) => { //обработаем 
             if (num >= data.answers.length){
                 //ответили на все вопросы
                 // переходим на страницу с результатами
-                data.complete = true;
+                data.complete = 1;
                 sess.write_data(data); //записали новые данные
                 res.redirect(sess.gen_url('/results'));
                 return
@@ -143,7 +142,8 @@ app.get('/reset', (req, res) => { //(промежуточная страница
     res.redirect('/');
 });
 
-app.get('/admin', admin.admin); 
+app.get('/admin', admin.admin);
+app.get('/admin_order', admin.admin_order);
 
 
 // запускаем сервер на прослушивание порта
