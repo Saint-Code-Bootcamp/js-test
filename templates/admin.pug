@@ -4,7 +4,14 @@ html
         title JS. Панель управления
     body
         h2 Результаты тестов:
-        ul
-            each email, summary, complete in list
-                li email - summary - complete
+        table(border=1)
+            tr
+                th email
+                th правильных ответов
+                th завершил?
+            each item in list
+                tr
+                    td #{item.email}
+                    td #{item.summary}
+                    td #{item.complete}
         
