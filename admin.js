@@ -18,7 +18,7 @@ function admin(req, res) { // результаты всех тестов
 }
 
 function admin_order(req, res) { // результаты всех тестов
-    const list = connection.query(`SELECT * FROM results WHERE 1 ORDER BY summary`);
+    const list = connection.query(`SELECT * FROM results WHERE 1 ORDER BY summary`); //добавляем ORDER BY для сортировки результата
     const compiledFunction = pug.compileFile(settings.dirs.TEMPLATES + 'admin.pug');
     const resp = compiledFunction({list: list});
     res.send(resp);

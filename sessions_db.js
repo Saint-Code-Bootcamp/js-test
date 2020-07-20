@@ -1,5 +1,6 @@
-const mysql = require('sync-mysql');
+const mysql = require('sync-mysql'); //подключим библиотеку для работы с БД
 
+//устанавливаем соединение с СУБД
 const connection = new mysql({
     host: "localhost",
     user: "jstest",
@@ -12,7 +13,7 @@ function Session(sess_id){
     this.sess_id = sess_id; //идентификатор сессии
 
     this.is_session = function(){
-        //проверить существует ли такая сессия(создан ли файл)
+        //проверить существует ли такая сессия(есть ли запись в БД)
         row = connection.query(`SELECT count(*) cnt FROM results WHERE sess_id="${this.sess_id}"`);
         return parseInt(row[0]['cnt']) > 0;
     }
@@ -43,17 +44,19 @@ function Session(sess_id){
     this.read_data = function(){
         //получить данные сессии в виде объекта
         const resp = connection.query(`SELECT * FROM results WHERE sess_id="${this.sess_id}"`)[0];
-        resp.answers = JSON.parse(resp.answers);
+        resp.answers = JSON.parse(resp.answers); //преобразовать данные об ответах из строки в объект
         return resp;
     }
 
     this.write_data = function(data){
         //сохранить данные сессии в файле
+        //обезопасим данные приведением типа
         const answers = JSON.stringify(data.answers);
         const current = parseInt(data.current);
         const complete = data.complete;
         const summary = parseInt(data.summary);
-        if (this.is_session()){
+        if (this.is_session()){ //проверим есть ли такая запись в таблице
+            //обновим значения в записи
             connection.query(`UPDATE results SET 
                                     email = "${data.email}",
                                     answers = '${answers}',
@@ -62,6 +65,7 @@ function Session(sess_id){
                                     summary = "${summary}"
                                 WHERE sess_id="${this.sess_id}"`);
         } else {
+            //вставим новую запись в таблицу
             connection.query(`INSERT INTO results (sess_id, email, answers, current, complete, summary) VALUES(
                             '${this.sess_id}',
                             "${data.email}",
@@ -74,6 +78,7 @@ function Session(sess_id){
     }
 
     this.delete = function(){
+        // удалим запись из таблицы
         connection.query(`DELETE FROM results WHERE sess_id="${this.sess_id}"`);
     }
 }
